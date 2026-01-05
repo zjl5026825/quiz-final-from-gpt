@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>毛概题库 - 网页版</title>
+  <!-- PWA 基础：iOS 主屏幕与主题色 -->
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="毛概题库" />
+  <link rel="manifest" href="./manifest.json" />
+  <!-- iOS Safari 不完全支持 manifest，建议补充启动图标与状态栏配置 -->
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#121a33;
+      --card2:#0f1630;
+      --text:#e8ecff;
+      --muted:#9aa6d6;
+      --accent:#7aa2ff;
+      --ok:#57d37b;
+      --bad:#ff5a6b;
+      --warn:#ffd166;
+      --border:rgba(255,255,255,.10);
+      --shadow:0 12px 28px rgba(0,0,0,.35);
+    }
+
+    /* 白天模式（通过 body[data-theme="light"] 启用） */
+    body[data-theme="light"]{
+      --bg:#f5f7ff;
+      --card:#ffffff;
+      --card2:#f3f5ff;
+      --text:#11162a;
+      --muted:#4c567a;
+      --accent:#2e5bff;
+      --ok:#1f9d55;
+      --bad:#d62839;
+      --warn:#b8860b;
+      --border:rgba(0,0,0,.10);
+      --shadow:0 10px 22px rgba(0,0,0,.12);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, "Noto Sans", sans-serif;
+      background: radial-gradient(1000px 600px at 10% 10%, rgba(122,162,255,.20), transparent 60%),
+                  radial-gradient(800px 500px at 90% 20%, rgba(87,211,123,.12), transparent 55%),
+                  radial-gradient(900px 700px at 40% 100%, rgba(255,90,107,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:10;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(180deg, rgba(11,16,32,.92), rgba(11,16,32,.65));
+      border-bottom:1px solid var(--border);
+    }
+    body[data-theme="light"] header{
+      background: linear-gradient(180deg, rgba(245,247,255,.92), rgba(245,247,255,.65));
+    }
+
+    .wrap{max-width:1100px;margin:0 auto;padding:16px 20px;}
+    .top{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+    }
+    .brand h1{font-size:18px;margin:0;letter-spacing:.5px}
+    .brand span{font-size:12px;color:var(--muted)}
+
+    .controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .chip{
+      border:1px solid var(--border);
+      background: rgba(18,26,51,.65);
+      padding:8px 10px;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      box-shadow: 0 6px 16px rgba(0,0,0,.22);
+    }
+    body[data-theme="light"] .chip{
+      background: rgba(255,255,255,.75);
+      box-shadow: 0 6px 16px rgba(0,0,0,.12);
+    }
+
+    input[type="search"], select{
+      background:transparent;
+      border:none;
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+      min-width:220px;
+    }
+    body[data-theme="light"] input[type="search"],
+    body[data-theme="light"] select{ color:var(--text); }
+
+    select{min-width:140px;}
+
+    .btn{
+      cursor:pointer;
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(122,162,255,.25), rgba(122,162,255,.10));
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:14px;
+      font-size:13px;
+      transition:transform .06s ease, background .2s ease;
+    }
+    .btn:hover{transform: translateY(-1px);}
+    .btn:active{transform: translateY(0px);}
+    .btn.secondary{
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+    }
+
+    main{max-width:1100px;margin:18px auto 40px; padding:0 20px;}
+
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap:12px;
+      margin-bottom:14px;
+    }
+    @media (max-width:980px){
+      .stats{grid-template-columns: repeat(2, minmax(0,1fr));}
+      input[type="search"]{min-width:180px}
+    }
+    @media (max-width:520px){
+      .stats{grid-template-columns: 1fr;}
+      input[type="search"]{min-width:160px}
+    }
+
+    .stat{
+      background: linear-gradient(180deg, rgba(18,26,51,.90), rgba(15,22,48,.85));
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:12px 14px;
+      box-shadow: var(--shadow);
+    }
+    body[data-theme="light"] .stat{
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(243,245,255,.90));
+    }
+    .stat .k{font-size:12px;color:var(--muted)}
+    .stat .v{font-size:18px;margin-top:6px;font-weight:700;letter-spacing:.3px}
+
+    .card{
+      background: linear-gradient(180deg, rgba(18,26,51,.92), rgba(15,22,48,.90));
+      border:1px solid var(--border);
+      border-radius:22px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    body[data-theme="light"] .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(243,245,255,.92));
+    }
+
+    .cardHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:14px 16px;
+      border-bottom:1px solid var(--border);
+      background: rgba(255,255,255,.02);
+    }
+    body[data-theme="light"] .cardHead{ background: rgba(0,0,0,.03); }
+    .cardHead .left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .pill{
+      font-size:12px;
+      color:var(--muted);
+      border:1px solid var(--border);
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.03);
+    }
+    body[data-theme="light"] .pill{ background: rgba(0,0,0,.03); }
+
+    .nav{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .nav .btn{padding:8px 10px}
+
+    .qBody{padding:16px;}
+    .qTitle{ margin:0 0 12px; font-size:16px; line-height:1.6; }
+    .qMeta{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+
+    .options{ display:grid; gap:10px; }
+    .opt{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      border-radius:16px;
+      padding:10px 12px;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      cursor:pointer;
+      transition: transform .06s ease, background .18s ease, border-color .18s ease;
+      user-select:none;
+    }
+    .opt:hover{transform: translateY(-1px); background: rgba(255,255,255,.05)}
+    body[data-theme="light"] .opt{ background: rgba(0,0,0,.03); }
+    body[data-theme="light"] .opt:hover{ background: rgba(0,0,0,.05); }
+    .opt input{margin-top:3px;}
+    .opt.correct{border-color: rgba(87,211,123,.45); background: rgba(87,211,123,.08)}
+    .opt.wrong{border-color: rgba(255,90,107,.45); background: rgba(255,90,107,.08)}
+
+    .actions{ display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+
+    .feedback{
+      margin-top:14px;
+      border-top:1px dashed rgba(255,255,255,.18);
+      padding-top:12px;
+      color:var(--muted);
+      line-height:1.75;
+      font-size:13px;
+    }
+    .feedback strong{color:var(--text)}
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:16px;
+      transform: translateX(-50%);
+      background: rgba(18,26,51,.95);
+      border:1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius:16px;
+      padding:10px 12px;
+      font-size:13px;
+      color:var(--text);
+      display:none;
+      max-width: min(560px, calc(100vw - 28px));
+    }
+    body[data-theme="light"] .toast{background: rgba(255,255,255,.96);}
+    .toast.show{display:block;}
+
+    /* 简单的测试输出区（开发用，默认隐藏） */
+    #testReport{display:none;max-width:1100px;margin:0 auto;padding:0 20px 20px;color:var(--muted);font-size:12px;line-height:1.7}
+    #testReport code{color:var(--text)}
+
+    /* —— 多选题/长选项：移动端避免文字被遮挡（你反馈的“覆盖不全”根因之一） —— */
+    .opt{overflow:visible;word-break:break-word;white-space:normal;}
+    .opt > div{flex:1 1 auto;min-width:0;}
+    .opt input{flex:0 0 auto;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="top">
+        <div class="brand">
+          <h1>毛概题库</h1>
+          <span>单选 / 多选 / 填空 / 判断（离线运行）</span>
+        </div>
+        <div class="controls">
+          <div class="chip" title="搜索题目或选项关键词">
+            <span style="color:var(--muted);font-size:12px">搜索</span>
+            <input id="search" type="search" placeholder="输入关键词…" />
+          </div>
+          <div class="chip" title="按题型筛选">
+            <span style="color:var(--muted);font-size:12px">题型</span>
+            <select id="typeFilter">
+              <option value="all">全部</option>
+              <option value="single">单选题</option>
+              <option value="multi">多选题</option>
+              <option value="blank">填空题</option>
+              <option value="judge">判断题</option>
+            </select>
+          </div>
+          <div class="chip" title="题库管理：新建/切换/导入">
+            <span style="color:var(--muted);font-size:12px">题库</span>
+            <select id="bankSelect" style="min-width:200px"></select>
+            <button class="btn secondary" id="newBankBtn" type="button">新建</button>
+            <button class="btn secondary" id="importBtn" type="button">导入JSON</button>
+            <button class="btn secondary" id="importTxtBtn" type="button">导入TXT</button>
+            <button class="btn secondary" id="importDocxBtn" type="button">导入DOCX</button>
+            <input id="jsonFile" type="file" accept="application/json" style="display:none" />
+            <input id="txtFile" type="file" accept=".txt,text/plain" style="display:none" />
+            <input id="docxFile" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none" />
+          </div>
+          <button class="btn secondary" id="shuffleBtn">随机出题</button>
+          <button class="btn" id="wrongBookBtn">错题本</button>
+          <button class="btn secondary" id="themeBtn" type="button" title="切换白天/黑夜">白天模式</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="stats" aria-label="统计">
+      <div class="stat"><div class="k">当前题号</div><div class="v" id="statIndex">-</div></div>
+      <div class="stat"><div class="k">筛选后总题数</div><div class="v" id="statTotal">-</div></div>
+      <div class="stat"><div class="k">已答</div><div class="v" id="statAnswered">-</div></div>
+      <div class="stat"><div class="k">正确率</div><div class="v" id="statAcc">-</div></div>
+    </section>
+
+    <section class="card" aria-label="题目">
+      <div class="cardHead">
+        <div class="left">
+          <span class="pill" id="qType">-</span>
+          <span class="pill" id="qId">#-</span>
+          <span class="pill" style="opacity:.9">快捷键：←/→切题 · 1-7选项（A-G） · Enter提交</span>
+        </div>
+      </div>
+      <div class="qBody">
+        <div class="nav" style="justify-content:flex-end;margin-bottom:10px">
+          <button class="btn secondary" id="prevBtn" type="button">上一题</button>
+          <button class="btn secondary" id="nextBtn" type="button">下一题</button>
+        </div>
+
+        <h2 class="qTitle" id="qTitle">加载中…</h2>
+        <div class="qMeta" id="qMeta"></div>
+        <div class="options" id="options"></div>
+        <div class="actions" id="actions"></div>
+        <div class="feedback" id="feedback" style="display:none"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="testReport"></div>
+  <div class="toast" id="toast"></div>
+
+  <!-- DOCX 解析库（mammoth.js 本地引用；请将 vendor/mammoth.browser.min.js 放入仓库） -->
+  <script src="./vendor/mammoth.browser.min.js"></script>
+  <!-- 注意：若不需要 DOCX 导入，可删除上面这一行与对应按钮 -->
+
+  <script>
+    /**
+     * 修复点：defaultQuestions 被 loadApp() 引用，但定义在其后，触发 TDZ：
+     *   ReferenceError: Cannot access 'defaultQuestions' before initialization
+     * 解决：将 defaultQuestions 提前定义到 loadApp() 之前。
+     *
+     * B 方案（GitHub Pages + PWA + 离线）：
+     * - 支持离线（Service Worker：sw.js）
+     * - 支持导入 JSON/TXT/DOCX（DOCX 使用本地 vendor/mammoth.browser.min.js）
+     * - 自动下一题：仅提交后触发；且可配置为“只做对才自动下一题”
+     */
+
+    // =====================
+    // 内置默认题库（毛概示例）
+    // =====================
+    const defaultQuestions = [
+      { id: 1, type: 'single', stem: '2018年是马克思诞辰多少周年?', options: {A:'100周年',B:'150周年',C:'200周年',D:'250周年'}, answer: ['C'] },
+      { id: 2, type: 'single', stem: '2018年,( )通过的宪法修正案把马克思列宁主义、毛泽东思想、邓小平理论、“三个代表”重要思想、科学发展观、习近平新时代中国特色社会主义思想共同确立为国家指导思想', options: {A:'十二届全国人大一次会议',B:'十三届全国人大一次会议',C:'十二届全国政协一次会议',D:'十三届全国政协一次会议'}, answer: ['B'] },
+      { id: 3, type: 'single', stem: '马克思主义中国化的两大理论成果包括毛泽东思想和( )', options: {A:'邓小平理论',B:'科学发展观',C:'习近平新时代中国特色社会主义思想',D:'中国特色社会主义理论'}, answer: ['D'] },
+      { id: 4, type: 'single', stem: '鲜明地回答了什么是社会主义、怎样建设社会主义的是', options: {A:'“三个代表”重要思想',B:'科学发展观',C:'习近平新时代中国特色社会主义思想',D:'邓小平理论'}, answer: ['D'] },
+      { id: 5, type: 'single', stem: '1848 年 2 月( ) 的发表,标志着马克思主义的诞生。', options: {A:'《资本论》',B:'《共产党人发刊词》',C:'《共产党宣言》'}, answer: ['C'] },
+      { id: 6, type: 'single', stem: '马克思主义诞生的阶级基础是', options: {A:'工业革命',B:'工人运动',C:'空想社会主义学说'}, answer: ['B'] },
+      { id: 7, type: 'single', stem: '毛泽东思想形成的时代条件是', options: {A:'1919年以后中国革命进入新民主主义革命时期',B:'1840年以后中国成为一个半殖民地半封建社会',C:'俄国十月革命开辟了世界无产阶级社会主义革命的新时代',D:'1927年以后中国共产党独立担负起领导中国革命的重任'}, answer: ['C'] },
+      { id: 8, type: 'single', stem: '毛泽东思想活的灵魂是', options: {A:'实事求是、群众路线、独立自主',B:'理论与实践相结合、密切联系群众、批评与自我批评',C:'武装斗争、土地革命、根据地建设',D:'武装斗争、统一战线、党的建设'}, answer: ['A'] },
+      { id: 9, type: 'single', stem: '马克思主义中国化第一次历史性飞跃的理论成果是', options: {A:'新三民主义',B:'毛泽东思想',C:'邓小平理论',D:'科学发展观'}, answer: ['B'] },
+      { id: 10, type: 'single', stem: '马克思主义中国化第二次历史性飞跃的理论成果是', options: {A:'毛泽东思想',B:'中国特色社会主义理论体系',C:'邓小平理论',D:'习近平新时代中国特色社会主义思想'}, answer: ['B'] },
+      { id: 11, type: 'single', stem: '在中国共产党的历史上,( )第一个明确提出了“马克思主义中国化”的科学命题和重大任务,深刻论证了马克思主义中国化的必要性和极端重要性。', options: {A:'陈独秀',B:'李大钊',C:'毛泽东',D:'刘少奇'}, answer: ['C'] },
+      { id: 12, type: 'single', stem: '毛泽东思想形成和发展的实践基础是', options: {A:'中国工人运动的发展',B:'马克思列宁主义在中国的传播',C:'中国共产党领导人民进行革命和建设的成功实践',D:'20世纪前中期中国政局的变动'}, answer: ['C'] },
+      { id: 220, type: 'multi', stem: '下列关于马克思主义中国化的表述正确的有', options: {A:'马克思主义基本原理与中国具体实际相结合',B:'用教条主义的观点看待马克思主义',C:'马克思主义中国化是马克思主义发展的内在要求',D:'马克思主义中国化实现了两次历史性飞跃'}, answer: ['A','C','D'] },
+      { id: 223, type: 'multi', stem: '中国特色社会主义理论体系包括', options: {A:'毛泽东思想',B:'邓小平理论',C:'“三个代表”重要思想',D:'科学发展观',E:'习近平新时代中国特色社会主义思想'}, answer: ['B','C','D','E'] },
+      { id: 341, type: 'blank', stem: '马克思主义是关于自然界、( )、人类思维发展的一般规律的理论体系', answerText: '人类社会' },
+      { id: 357, type: 'blank', stem: '中国共产党在马克思主义指导下,立足中国国情,走出了一条不同于俄国十月革命的道路,即( ),武装夺取政权的革命道路。', answerText: '农村包围城市' },
+      { id: 409, type: 'judge', stem: '马克思主义中国化的第一个重大理论成果是毛泽东思想', answer: ['对'] },
+      { id: 410, type: 'judge', stem: '毛泽东思想是毛泽东的全部思想的总和', answer: ['错'] }
+    ];
+
+    // =====================
+    // 多题库应用存储结构（B 方案：题目/进度/错题本均隔离）
+    // =====================
+    const APP_KEY = 'quiz_app_v2';
+
+    function newStateForQuestions(qs){
+      return {
+        idx: 0,
+        mode: 'normal', // normal | wrongbook
+        answered: {},
+        wrong: {},
+        order: (qs||[]).map(q=>q.id),
+        autoNextOnSubmit: true,
+        // 新增：只做对才自动下一题（做错停留并显示答案）
+        autoNextOnlyWhenCorrect: true
+      };
+    }
+
+    function loadApp(){
+      const raw = localStorage.getItem(APP_KEY);
+      if(raw){
+        try{ return JSON.parse(raw); }catch(e){}
+      }
+      return {
+        theme: 'dark',
+        activeBankId: 'mao',
+        banks: {
+          mao: {
+            name: '毛概题库（内置）',
+            questions: defaultQuestions,
+            state: newStateForQuestions(defaultQuestions)
+          }
+        }
+      };
+    }
+
+    const app = loadApp();
+
+    function saveApp(){
+      localStorage.setItem(APP_KEY, JSON.stringify(app));
+    }
+
+    function getActiveBank(){
+      return app.banks[app.activeBankId];
+    }
+
+    // 当前题库运行时数据
+    let questions = [];
+    let state = null;
+
+    function syncActive(){
+      const bank = getActiveBank();
+      if(!bank.state) bank.state = newStateForQuestions(bank.questions||[]);
+      questions = Array.isArray(bank.questions) ? bank.questions : [];
+      state = bank.state;
+
+      if(!Array.isArray(state.order) || state.order.length !== questions.length){
+        state.order = questions.map(q=>q.id);
+      }
+
+      if(typeof state.autoNextOnSubmit !== 'boolean') state.autoNextOnSubmit = true;
+
+      if(typeof state.autoNextOnlyWhenCorrect !== 'boolean') state.autoNextOnlyWhenCorrect = true;
+
+      document.title = bank.name ? (bank.name + ' - 网页版') : '网页题库';
+
+      saveApp();
+    }
+
+    // 旧接口兼容：保留 saveState 名称
+    syncActive();
+
+    // =====================
+    // Service Worker 注册（GitHub Pages 可用，支持离线）
+    // =====================
+    (function registerSW(){
+      if(!('serviceWorker' in navigator)) return;
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+          console.warn('SW register failed', err);
+        });
+      });
+    })();
+    function saveState(){
+      saveApp();
+      renderStats();
+    }
+
+    // === 过滤与排序 ===
+    function getFilteredIds(){
+      const kw = document.getElementById('search').value.trim().toLowerCase();
+      const type = document.getElementById('typeFilter').value;
+
+      const base = (state.mode === 'wrongbook')
+        ? questions.filter(q => state.wrong[q.id])
+        : questions;
+
+      return base
+        .filter(q => type === 'all' ? true : q.type === type)
+        .filter(q => {
+          if(!kw) return true;
+          const hay = [q.stem, ...(q.options?Object.values(q.options):[]), q.answerText||''].join(' ').toLowerCase();
+          return hay.includes(kw);
+        })
+        .map(q => q.id);
+    }
+
+    function getQuestionById(id){
+      return questions.find(q=>q.id===id);
+    }
+
+    // === UI 渲染 ===
+    const typeName = {single:'单选题', multi:'多选题', blank:'填空题', judge:'判断题'};
+
+    function render(){
+      const ids = getFilteredIds();
+      if(ids.length===0){
+        document.getElementById('qType').textContent = '无题目';
+        document.getElementById('qId').textContent = '#-';
+        document.getElementById('qTitle').textContent = '未找到符合条件的题目。请调整搜索或筛选条件。';
+        document.getElementById('options').innerHTML = '';
+        document.getElementById('actions').innerHTML = '';
+        document.getElementById('feedback').style.display='none';
+        renderStats();
+        return;
+      }
+
+      if(state.idx < 0) state.idx = 0;
+      if(state.idx >= ids.length) state.idx = ids.length - 1;
+
+      const q = getQuestionById(ids[state.idx]);
+
+      document.getElementById('qType').textContent = typeName[q.type] + (state.mode==='wrongbook' ? '（错题本）' : '');
+      document.getElementById('qId').textContent = '#' + q.id;
+      document.getElementById('qTitle').textContent = q.stem;
+
+      const meta = document.getElementById('qMeta');
+      meta.innerHTML = '';
+      const m1 = document.createElement('span');
+      m1.className='pill';
+      m1.textContent = (q.type==='single'?'单选':'') + (q.type==='multi'?'多选':'') + (q.type==='blank'?'填空':'') + (q.type==='judge'?'判断':'');
+      meta.appendChild(m1);
+
+      const saved = state.answered[q.id];
+      if(saved){
+        const m2 = document.createElement('span');
+        m2.className='pill';
+        m2.textContent = saved.correct ? '已答：正确' : '已答：错误';
+        m2.style.borderColor = saved.correct ? 'rgba(87,211,123,.45)' : 'rgba(255,90,107,.45)';
+        meta.appendChild(m2);
+      }
+
+      const optionsWrap = document.getElementById('options');
+      optionsWrap.innerHTML = '';
+
+      if(q.type==='blank'){
+        const box = document.createElement('div');
+        box.className='opt';
+        box.style.cursor='default';
+        box.innerHTML = `
+          <div style="width:100%">
+            <div style="color:var(--muted);font-size:12px;margin-bottom:8px">请输入答案（支持模糊匹配，不区分空格）</div>
+            <input id="blankInput" type="text" placeholder="在此输入…" style="width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);outline:none;" />
+          </div>
+        `;
+        optionsWrap.appendChild(box);
+        if(saved){
+          document.getElementById('blankInput').value = (saved.selected||[''])[0] || '';
+          document.getElementById('blankInput').disabled = true;
+        }
+      }else if(q.type==='judge'){
+        ['对','错'].forEach(v => {
+          const opt = document.createElement('label');
+          opt.className = 'opt';
+          const checked = saved ? (saved.selected||[]).includes(v) : false;
+          opt.innerHTML = `
+            <input type="radio" name="judge" value="${v}" ${checked?'checked':''} ${saved?'disabled':''}/>
+            <div><strong>${v}</strong></div>
+          `;
+          optionsWrap.appendChild(opt);
+        });
+      }else{
+        const isMulti = q.type==='multi';
+        Object.entries(q.options)
+          .sort((a,b)=>a[0].localeCompare(b[0]))
+          .forEach(([k,v])=>{
+          const opt = document.createElement('label');
+          opt.className='opt';
+          const checked = saved ? (saved.selected||[]).includes(k) : false;
+          opt.innerHTML = `
+            <input type="${isMulti?'checkbox':'radio'}" name="opt" value="${k}" ${checked?'checked':''} ${saved?'disabled':''}/>
+            <div><strong>${k}.</strong> ${escapeHtml(v)}</div>
+          `;
+          optionsWrap.appendChild(opt);
+        });
+      }
+
+      const actions = document.getElementById('actions');
+      actions.innerHTML = '';
+      if(!saved){
+        const submit = document.createElement('button');
+        submit.className='btn';
+        submit.textContent='提交';
+        submit.onclick = ()=>submitAnswer(q);
+        actions.appendChild(submit);
+      }else{
+        const resetOne = document.createElement('button');
+        resetOne.className='btn secondary';
+        resetOne.textContent='重做本题';
+        resetOne.onclick = ()=>resetQuestion(q.id);
+        actions.appendChild(resetOne);
+      }
+
+      const reveal = document.createElement('button');
+      reveal.className='btn secondary';
+      reveal.textContent='查看答案';
+      reveal.onclick = ()=>showAnswer(q);
+      actions.appendChild(reveal);
+
+      const markWrong = document.createElement('button');
+      markWrong.className='btn secondary';
+      markWrong.textContent = state.wrong[q.id] ? '移出错题本' : '加入错题本';
+      markWrong.onclick = ()=>toggleWrong(q.id);
+      actions.appendChild(markWrong);
+
+      const fb = document.getElementById('feedback');
+      if(saved){
+        fb.style.display='block';
+        fb.innerHTML = buildFeedback(q, saved);
+        paintOptionsByResult(q, saved);
+      }else{
+        fb.style.display='none';
+        fb.innerHTML='';
+      }
+
+      renderStats();
+    }
+
+    function renderStats(){
+      const ids = getFilteredIds();
+      const total = ids.length;
+      const current = total? (state.idx+1) : 0;
+      const answeredIds = Object.keys(state.answered).map(Number);
+      const correct = answeredIds.filter(id=>state.answered[id]?.correct).length;
+      const acc = answeredIds.length ? (correct/answeredIds.length*100).toFixed(1)+'%' : '-';
+
+      document.getElementById('statIndex').textContent = total? `${current} / ${total}` : '-';
+      document.getElementById('statTotal').textContent = total || 0;
+      document.getElementById('statAnswered').textContent = answeredIds.length;
+      document.getElementById('statAcc').textContent = acc;
+
+      document.getElementById('prevBtn').disabled = !(total && state.idx>0);
+      document.getElementById('nextBtn').disabled = !(total && state.idx<total-1);
+    }
+
+    function paintOptionsByResult(q, saved){
+      const opts = Array.from(document.querySelectorAll('.opt'));
+      if(q.type==='blank') return;
+      opts.forEach(el=>{
+        const input = el.querySelector('input');
+        if(!input) return;
+        const val = input.value;
+        if((q.answer||[]).includes(val)) el.classList.add('correct');
+        if((saved.selected||[]).includes(val) && !(q.answer||[]).includes(val)) el.classList.add('wrong');
+      });
+    }
+
+    function buildFeedback(q, saved){
+      const ok = saved.correct;
+      const your = saved.selected || [];
+
+      let ansText = '';
+      if(q.type==='blank') ansText = q.answerText;
+      else ansText = (q.answer||[]).join('');
+
+      const yourText = q.type==='blank' ? (your[0]||'') : your.join('');
+      return `
+        <div style="margin-bottom:6px"><strong style="color:${ok?'var(--ok)':'var(--bad)'}">${ok?'回答正确':'回答错误'}</strong></div>
+        <div>你的答案：<strong>${escapeHtml(yourText || '（未选择）')}</strong></div>
+        <div>正确答案：<strong>${escapeHtml(ansText)}</strong></div>
+      `;
+    }
+
+    function submitAnswer(q){
+      let selected = [];
+
+      if(q.type==='blank'){
+        const v = (document.getElementById('blankInput').value || '').trim();
+        selected = [v];
+        const norm = normalize(v);
+        const normAns = normalize(q.answerText);
+        const correct = norm && (norm === normAns || normAns.includes(norm) || norm.includes(normAns));
+        state.answered[q.id] = {selected, correct};
+        if(!correct) state.wrong[q.id] = true;
+        else if(state.mode==='wrongbook') delete state.wrong[q.id];
+      }else if(q.type==='judge'){
+        const pick = document.querySelector('input[name="judge"]:checked');
+        if(!pick){toast('请先选择“对/错”。');return;}
+        selected = [pick.value];
+        const correct = (q.answer||[]).join('') === selected[0];
+        state.answered[q.id] = {selected, correct};
+        if(!correct) state.wrong[q.id] = true;
+        else if(state.mode==='wrongbook') delete state.wrong[q.id];
+      }else{
+        const picks = Array.from(document.querySelectorAll('input[name="opt"]:checked')).map(x=>x.value);
+        if(picks.length===0){toast('请先选择答案。');return;}
+        selected = picks;
+
+        const correct = sameSet(selected, q.answer || []);
+        state.answered[q.id] = {selected, correct};
+        if(!correct) state.wrong[q.id] = true;
+        else if(state.mode==='wrongbook') delete state.wrong[q.id];
+      }
+
+      saveState();
+      render();
+      toast(state.answered[q.id].correct ? '正确。' : '错误，已加入错题本。');
+    }
+
+    function showAnswer(q){
+      const saved = state.answered[q.id];
+      if(saved){
+        toast('已显示答案与对比结果。');
+        return;
+      }
+      const fb = document.getElementById('feedback');
+      fb.style.display='block';
+      fb.innerHTML = `
+        <div style="margin-bottom:6px"><strong style="color:var(--warn)">答案提示</strong></div>
+        <div>正确答案：<strong>${escapeHtml(q.type==='blank'? q.answerText : (q.answer||[]).join(''))}</strong></div>
+        <div style="margin-top:8px;color:var(--muted)">建议先作答再查看答案，以获得更好的练习效果。</div>
+      `;
+    }
+
+    function resetQuestion(id){
+      delete state.answered[id];
+      saveState();
+      render();
+      toast('已重置本题。');
+    }
+
+    function toggleWrong(id){
+      if(state.wrong[id]){
+        delete state.wrong[id];
+        toast('已移出错题本。');
+      }else{
+        state.wrong[id] = true;
+        toast('已加入错题本。');
+      }
+      saveState();
+      render();
+    }
+
+    function prev(){ state.idx--; saveState(); render(); }
+    function next(){ state.idx++; saveState(); render(); }
+
+    function shuffleOrder(){
+      const ids = getFilteredIds();
+      const shuffled = [...ids].sort(()=>Math.random()-0.5);
+      state.order = shuffled;
+      state.idx = 0;
+      toast('已随机出题（基于当前筛选）。');
+      saveState();
+      renderShuffled();
+    }
+
+    function renderShuffled(){
+      const ids = state.order;
+      if(!ids.length){ render(); return; }
+      const q = getQuestionById(ids[state.idx]);
+      if(!q){ render(); return; }
+      const original = getFilteredIds;
+      window.getFilteredIds = ()=>ids;
+      try{ render(); } finally { window.getFilteredIds = original; }
+    }
+
+    function toggleWrongBook(){
+      state.mode = state.mode === 'wrongbook' ? 'normal' : 'wrongbook';
+      state.idx = 0;
+      saveState();
+      render();
+      toast(state.mode==='wrongbook' ? '已进入错题本模式。' : '已返回全题库。');
+    }
+
+    // =====================
+    // 主题（白天/黑夜）
+    // =====================
+    function applyTheme(theme){
+      app.theme = theme;
+      document.body.dataset.theme = (theme==='light') ? 'light' : 'dark';
+      const btn = document.getElementById('themeBtn');
+      if(btn) btn.textContent = (theme==='light') ? '黑夜模式' : '白天模式';
+      saveApp();
+    }
+
+    function toggleTheme(){
+      const nextTheme = (app.theme==='light') ? 'dark' : 'light';
+      applyTheme(nextTheme);
+      toast(nextTheme==='light' ? '已切换到白天模式。' : '已切换到黑夜模式。');
+    }
+
+    // =====================
+    // 题库管理：切换/新建/导入（覆盖）
+    // =====================
+    function renderBankSelect(){
+      const sel = document.getElementById('bankSelect');
+      if(!sel) return;
+      sel.innerHTML='';
+      Object.entries(app.banks).forEach(([id, bank])=>{
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = bank.name;
+        if(id===app.activeBankId) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function switchBank(id){
+      if(!app.banks[id]) return;
+      app.activeBankId = id;
+      saveApp();
+      syncActive();
+      document.getElementById('search').value='';
+      document.getElementById('typeFilter').value='all';
+      state.idx = 0;
+      saveApp();
+      render();
+      toast('已切换题库：' + getActiveBank().name);
+    }
+
+    function createBankDialog(){
+      const name = prompt('请输入新题库名称（例如：期末冲刺题库）');
+      if(!name) return;
+      const id = 'bank_' + Date.now();
+      app.banks[id] = {
+        name,
+        questions: [],
+        state: newStateForQuestions([])
+      };
+      app.activeBankId = id;
+      saveApp();
+      renderBankSelect();
+      syncActive();
+      render();
+      toast('已新建题库：' + name);
+    }
+
+    function validateQuestionsJson(arr){
+      if(!Array.isArray(arr)) return {ok:false, msg:'JSON 顶层必须是数组。'};
+      if(arr.length===0) return {ok:false, msg:'题库为空。'};
+      for(let i=0;i<arr.length;i++){
+        const q = arr[i];
+        if(typeof q !== 'object' || q===null) return {ok:false, msg:`第 ${i+1} 题不是对象。`};
+        if(!q.type || !['single','multi','blank','judge'].includes(q.type)) return {ok:false, msg:`第 ${i+1} 题 type 必须是 single/multi/blank/judge。`};
+        if(typeof q.stem !== 'string' || !q.stem.trim()) return {ok:false, msg:`第 ${i+1} 题 stem 不能为空。`};
+        if(q.id==null) q.id = i+1;
+        if(q.type==='blank'){
+          if(typeof q.answerText !== 'string' || !q.answerText.trim()) return {ok:false, msg:`第 ${i+1} 题（填空）必须有 answerText。`};
+        }else if(q.type==='judge'){
+          if(!Array.isArray(q.answer) || q.answer.length!==1 || !['对','错'].includes(q.answer[0])) return {ok:false, msg:`第 ${i+1} 题（判断）answer 必须是 ['对'] 或 ['错']。`};
+        }else{
+          if(typeof q.options !== 'object' || !q.options) return {ok:false, msg:`第 ${i+1} 题必须有 options。`};
+          if(!Array.isArray(q.answer) || q.answer.length<1) return {ok:false, msg:`第 ${i+1} 题必须有 answer 数组。`};
+        }
+      }
+      return {ok:true};
+    }
+
+    function importJsonFile(e){
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const data = JSON.parse(String(reader.result||''));
+          const v = validateQuestionsJson(data);
+          if(!v.ok){ toast('导入失败：' + v.msg); return; }
+
+          // 覆盖当前题库
+          const bank = getActiveBank();
+          bank.questions = data;
+          bank.state = newStateForQuestions(data);
+          saveApp();
+          syncActive();
+          document.getElementById('search').value='';
+          document.getElementById('typeFilter').value='all';
+          render();
+          toast(`导入成功：${data.length} 题（已覆盖当前题库）`);
+        }catch(err){
+          toast('导入失败：JSON 解析错误');
+        }
+      };
+      reader.readAsText(file, 'utf-8');
+      e.target.value='';
+    }
+
+    // =====================
+    // 提交后自动下一题 + 错题本做对自动移除
+    // 变更：不再“选完就下一题”。只有在明确提交后才会自动下一题。
+    // =====================
+    function autoNextIfPossible(){
+      if(state.mode==='wrongbook') return;
+      const ids = getFilteredIds();
+      if(!ids.length) return;
+      if(state.idx < ids.length - 1){
+        state.idx += 1;
+        saveState();
+        render();
+      }
+    }
+
+    const _submitAnswer = submitAnswer;
+    submitAnswer = function(q){
+      _submitAnswer(q);
+      const saved = state.answered[q.id];
+      if(saved && saved.correct && state.mode==='wrongbook'){
+        delete state.wrong[q.id];
+        saveState();
+        render();
+      }
+      // 只有“提交”后才会进入下一题；且可选：只做对才跳
+      if(state.autoNextOnSubmit){
+        if(state.autoNextOnlyWhenCorrect && !(saved && saved.correct)) return;
+        autoNextIfPossible();
+      }
+    };
+
+    // =====================
+    // 工具函数
+    // =====================
+    function normalize(s){
+      return (s||'').replace(/\s+/g,'').toLowerCase();
+    }
+
+    function sameSet(a,b){
+      const A = [...a].sort().join('|');
+      const B = [...b].sort().join('|');
+      return A===B;
+    }
+
+    function escapeHtml(str){
+      return String(str??'').replace(/[&<>\"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[s]));
+    }
+
+    let toastTimer=null;
+    function toast(msg){
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=>el.classList.remove('show'), 1800);
+    }
+
+    function findSubmitBtn(){
+      return Array.from(document.querySelectorAll('#actions .btn')).find(b=>b.textContent==='提交');
+    }
+
+    // =====================
+    // 事件绑定
+    // =====================
+    document.getElementById('prevBtn').addEventListener('click', prev);
+    document.getElementById('nextBtn').addEventListener('click', next);
+    document.getElementById('shuffleBtn').addEventListener('click', shuffleOrder);
+    document.getElementById('wrongBookBtn').addEventListener('click', toggleWrongBook);
+
+    document.getElementById('search').addEventListener('input', ()=>{ state.idx=0; saveState(); render(); });
+    document.getElementById('typeFilter').addEventListener('change', ()=>{ state.idx=0; saveState(); render(); });
+
+    document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+
+    document.getElementById('bankSelect').addEventListener('change', (e)=>switchBank(e.target.value));
+    document.getElementById('newBankBtn').addEventListener('click', createBankDialog);
+    document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('jsonFile').click());
+    document.getElementById('jsonFile').addEventListener('change', importJsonFile);
+
+    document.getElementById('importTxtBtn').addEventListener('click', ()=>document.getElementById('txtFile').click());
+    document.getElementById('txtFile').addEventListener('change', importTxtFile);
+
+    document.getElementById('importDocxBtn').addEventListener('click', ()=>document.getElementById('docxFile').click());
+    document.getElementById('docxFile').addEventListener('change', importDocxFile);
+
+    // 快捷键：←/→切题；1-4选项；Enter 提交
+    // 单选/判断：数字键选择后自动提交；多选：数字键仅切换勾选
+    document.addEventListener('keydown', (e)=>{
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+      const inInput = tag==='input' || tag==='textarea' || e.target?.isContentEditable;
+
+      if(inInput){
+        if(e.key==='Enter'){
+          const submitBtn = findSubmitBtn();
+          if(submitBtn){
+            e.preventDefault();
+            submitBtn.click();
+          }
+        }
+        return;
+      }
+
+      if(e.key==='ArrowLeft'){
+        if(!document.getElementById('prevBtn').disabled){ prev(); }
+        return;
+      }
+      if(e.key==='ArrowRight'){
+        if(!document.getElementById('nextBtn').disabled){ next(); }
+        return;
+      }
+
+      if(e.key==='Enter'){
+        const submitBtn = findSubmitBtn();
+        if(submitBtn){
+          e.preventDefault();
+          submitBtn.click();
+        }
+        return;
+      }
+
+      // 1-7 选择 A-G（不自动提交）
+      if(['1','2','3','4','5','6','7'].includes(e.key)){
+        const idx = Number(e.key)-1;
+        const inputs = Array.from(document.querySelectorAll('input[name="opt"], input[name="judge"]'));
+        if(inputs.length===0) return;
+        if(idx >= inputs.length) return;
+
+        const target = inputs[idx];
+        if(target.disabled) return;
+
+        if(target.type==='radio'){
+          target.checked = true;
+          target.dispatchEvent(new Event('change', {bubbles:true}));
+          return;
+        }
+
+        target.checked = !target.checked;
+        target.dispatchEvent(new Event('change', {bubbles:true}));
+      }
+    });
+
+    // =====================
+    // 测试用例（新增：覆盖 defaultQuestions/TDZ 修复，确保 loadApp 可正常引用）
+    // =====================
+    (function runTests(){
+      const showInPage = false;
+      const report = [];
+      const assert = (name, cond) => report.push({name, ok: !!cond});
+
+      assert('defaultQuestions exists before loadApp usage', Array.isArray(defaultQuestions) && defaultQuestions.length>0);
+      assert('loadApp returns object', typeof loadApp()==='object');
+      assert('sameSet: order-insensitive', sameSet(['A','C'], ['C','A'])===true);
+      assert('sameSet: different set', sameSet(['A'], ['A','B'])===false);
+      assert('normalize: remove spaces', normalize(' 农村 包围 城市 ') === '农村包围城市');
+      assert('escapeHtml: escape < >', escapeHtml('<b>') === '&lt;b&gt;');
+      assert('autoNextOnlyWhenCorrect default true', newStateForQuestions([{id:1}]).autoNextOnlyWhenCorrect===true);
+      assert('parseTxtToQuestions parses single', (function(){
+        const t = '1. 测试题
+A. a
+B. b
+答案：B';
+        const r = parseTxtToQuestions(t);
+        return r.length===1 && r[0].type==='single' && r[0].answer[0]==='B';
+      })());
+      const okCount = report.filter(r=>r.ok).length;
+      const msg = `[tests] ${okCount}/${report.length} passed`;
+      console.log(msg, report);
+
+      if(showInPage){
+        const el = document.getElementById('testReport');
+        el.style.display='block';
+        el.innerHTML = `<div><strong>${msg}</strong></div>` + report.map(r=>
+          `<div>${r.ok?'✅':'❌'} ${r.name}</div>`
+        ).join('');
+      }
+    })();
+
+    // =====================
+    // 启动
+    // =====================
+    applyTheme(app.theme || 'dark');
+    renderBankSelect();
+    render();
+  </script>
+</body>
+</html>
