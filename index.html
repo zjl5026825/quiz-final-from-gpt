@@ -1041,13 +1041,13 @@
       assert('escapeHtml: escape < >', escapeHtml('<b>') === '&lt;b&gt;');
       assert('autoNextOnlyWhenCorrect default true', newStateForQuestions([{id:1}]).autoNextOnlyWhenCorrect===true);
       assert('parseTxtToQuestions parses single', (function(){
-        const t = '1. 测试题
+  const t = `1. 测试题
 A. a
 B. b
-答案：B';
-        const r = parseTxtToQuestions(t);
-        return r.length===1 && r[0].type==='single' && r[0].answer[0]==='B';
-      })());
+答案：B`;
+  const r = parseTxtToQuestions(t);
+  return r.length===1 && r[0].type==='single' && r[0].answer[0]==='B';
+})());
       const okCount = report.filter(r=>r.ok).length;
       const msg = `[tests] ${okCount}/${report.length} passed`;
       console.log(msg, report);
@@ -1070,3 +1070,4 @@ B. b
   </script>
 </body>
 </html>
+
