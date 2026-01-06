@@ -335,9 +335,40 @@
       color:var(--text);
       display:none;
       max-width: min(560px, calc(100vw - 28px));
+      z-index:9999;
     }
     body[data-theme="light"] .toast{background: rgba(255,255,255,.96);}
     .toast.show{display:block;}
+
+    /* ========== iOS 底部操作条（提交/答案/错题） ========== */
+    .bottomBar{display:none;}
+    @media (max-width: 820px){
+      .bottomBar{
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: calc(58px + env(safe-area-inset-bottom));
+        padding: 10px 12px;
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+        background: rgba(11,16,32,.62);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-top: 1px solid var(--border);
+        z-index: 29;
+      }
+      body[data-theme="light"] .bottomBar{background: rgba(245,247,255,.82);}
+      .bottomBar .btn{flex:1 1 0; padding:12px 12px; border-radius:18px; font-size:14px;}
+      /* 题目内容底部留出两层固定栏空间 */
+      main{padding-bottom: calc(148px + env(safe-area-inset-bottom));}
+    }
+
+    /* ========== 阅读模式：更大字体与行距 ========== */
+    body[data-reading="on"] .qTitle{font-size:22px !important; line-height:2.0 !important;}
+    body[data-reading="on"] .opt > div{font-size:17px !important; line-height:1.85 !important;}
+    body[data-reading="on"] .opt{padding:14px 14px !important;}
+    body[data-reading="on"] .pill{font-size:13px;}
 
     /* 简单的测试输出区（开发用，默认隐藏） */
     #testReport{display:none;max-width:1100px;margin:0 auto;padding:0 20px 20px;color:var(--muted);font-size:12px;line-height:1.7}
@@ -384,6 +415,7 @@
           </div>
           <button class="btn secondary" id="shuffleBtn">随机出题</button>
           <button class="btn" id="wrongBookBtn">错题本</button>
+          <button class="btn secondary" id="readingBtn" type="button" title="阅读模式：放大题干与选项">阅读</button>
           <button class="btn secondary" id="themeBtn" type="button" title="切换白天/黑夜">白天模式</button>
         </div>
       </div>
@@ -421,6 +453,13 @@
         <div class="options" id="options"></div>
         <div class="actions" id="actions"></div>
         <div class="feedback" id="feedback" style="display:none"></div>
+
+        <!-- iOS 底部操作条（小屏启用） -->
+        <div class="bottomBar" id="bottomBar" aria-label="底部操作栏">
+          <button class="btn" id="bbSubmit" type="button">提交</button>
+          <button class="btn secondary" id="bbReveal" type="button">答案</button>
+          <button class="btn secondary" id="bbWrong" type="button">错题</button>
+        </div>
       </div>
     </section>
   </main>
@@ -1046,6 +1085,30 @@
       document.body.dataset.stats = (document.body.dataset.stats === 'collapsed') ? 'expanded' : 'collapsed';
       toast(document.body.dataset.stats === 'collapsed' ? '已折叠统计' : '已展开统计');
     });
+
+    // 阅读模式
+    document.getElementById('readingBtn').addEventListener('click', ()=>{
+      document.body.dataset.reading = (document.body.dataset.reading === 'on') ? 'off' : 'on';
+      toast(document.body.dataset.reading === 'on' ? '阅读模式：已开启' : '阅读模式：已关闭');
+    });
+
+    // iOS 底部操作条（提交/答案/错题）
+    document.getElementById('bbSubmit').addEventListener('click', ()=>{
+      const btn = findSubmitBtn();
+      if(btn) btn.click();
+      else toast('本题已提交，可重做或查看答案');
+    });
+    document.getElementById('bbReveal').addEventListener('click', ()=>{
+      const ids = getFilteredIds();
+      const q = getQuestionById(ids[state.idx]);
+      if(q) showAnswer(q);
+    });
+    document.getElementById('bbWrong').addEventListener('click', ()=>{
+      const ids = getFilteredIds();
+      const q = getQuestionById(ids[state.idx]);
+      if(q) toggleWrong(q.id);
+    });
+
     document.getElementById('txtFile').addEventListener('change', importTxtFile);
 
     
