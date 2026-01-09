@@ -264,7 +264,6 @@
     body[data-theme="light"] .feedback{border-top-color:rgba(0,0,0,.18);}
     .feedback strong{color:var(--text)}
 
-    /* 单层底栏：上一题/下一题 + 提交/答案/错题 */
     .bottomBar{
       position: fixed;
       left: 0;
@@ -312,7 +311,6 @@
     }
     .bbRight .btn{max-width:140px;}
 
-    /* 阅读模式 */
     body[data-reading="on"] .qTitle{font-size:22px !important; line-height:2.0 !important;}
     body[data-reading="on"] .opt > div{font-size:17px !important; line-height:1.85 !important;}
     body[data-reading="on"] .opt{padding:14px 14px !important;}
@@ -337,7 +335,6 @@
     body[data-theme="light"] .toast{background: rgba(255,255,255,.96);}
     .toast.show{display:block;}
 
-    /* 隐藏原 actions（底栏替代），但桌面也仍可用：这里仅视觉上不强制隐藏 */
     @media (max-width: 980px){
       .actions{display:none;}
     }
@@ -422,7 +419,6 @@
     </section>
   </main>
 
-  <!-- 单层底栏 -->
   <div class="bottomBar" id="bottomBar" aria-label="底部操作栏">
     <div class="bbLeft">
       <button class="btn secondary bbIconBtn" id="bbPrev" type="button" title="上一题">‹</button>
@@ -441,9 +437,6 @@
   (function(){
     'use strict';
 
-    // =====================
-    // 最小示例题库（可删，可替换）
-    // =====================
     const defaultQuestions = [
       { id: 1, type: 'single', stem: '示例：2018年是马克思诞辰多少周年?', options: {A:'100周年',B:'150周年',C:'200周年',D:'250周年'}, answer: ['C'] },
       { id: 2, type: 'multi', stem: '示例：多选题（支持 A-G）', options: {A:'A项',B:'B项',C:'C项',D:'D项',E:'E项',F:'F项',G:'G项'}, answer: ['A','C','G'] },
@@ -456,11 +449,11 @@
     function newStateForQuestions(qs){
       return {
         idx: 0,
-        mode: 'normal', // normal | wrongbook
+        mode: 'normal',
         answered: {},
         wrong: {},
         order: (qs||[]).map(q=>q.id),
-        autoNextOnSubmit: false,         // 按你的要求：不自动下一题
+        autoNextOnSubmit: false,
         autoNextOnlyWhenCorrect: true
       };
     }
@@ -508,16 +501,12 @@
         state.order = questions.map(q=>q.id);
       }
 
-      // 标题更新
       document.getElementById('brandTitle').textContent = bank.name || '题库';
       document.title = (bank.name || '题库') + '（单文件）';
 
       saveApp();
     }
 
-    // =====================
-    // UI 状态：主题/阅读/统计
-    // =====================
     function applyTheme(theme){
       app.theme = theme;
       document.body.dataset.theme = (theme==='light') ? 'light' : 'dark';
@@ -551,9 +540,6 @@
       toast(document.body.dataset.stats==='collapsed' ? '已折叠统计' : '已展开统计');
     }
 
-    // =====================
-    // 工具函数
-    // =====================
     function normalize(s){ return (s||'').replace(/\s+/g,'').toLowerCase(); }
     function sameSet(a,b){
       const A = [...a].sort().join('|');
@@ -575,13 +561,6 @@
       toastTimer = setTimeout(()=>el.classList.remove('show'), 1700);
     }
 
-    function findSubmitBtn(){
-      return Array.from(document.querySelectorAll('#actions .btn')).find(b=>b.textContent==='提交');
-    }
-
-    // =====================
-    // 题库管理
-    // =====================
     function renderBankSelect(){
       const sel = document.getElementById('bankSelect');
       sel.innerHTML='';
@@ -620,9 +599,6 @@
       toast('已新建题库：' + name);
     }
 
-    // =====================
-    // 导入（覆盖当前题库）
-    // =====================
     function validateQuestionsJson(arr){
       if(!Array.isArray(arr)) return {ok:false, msg:'JSON 顶层必须是数组。'};
       if(arr.length===0) return {ok:false, msg:'题库为空。'};
@@ -675,11 +651,6 @@
       e.target.value='';
     }
 
-    // TXT 格式示例：
-    // 1. 题干
-    // A. 选项
-    // B. 选项
-    // 答案：B
     function parseTxtToQuestions(text){
       text = String(text||'').replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
       const blocks = text.split(/\n(?=\s*\d+[\.、\)])/);
@@ -773,9 +744,6 @@
       e.target.value='';
     }
 
-    // =====================
-    // 题目筛选
-    // =====================
     function getFilteredIds(){
       const kw = document.getElementById('search').value.trim().toLowerCase();
       const type = document.getElementById('typeFilter').value;
@@ -796,15 +764,13 @@
 
     function getQuestionById(id){ return questions.find(q=>q.id===id); }
 
-    // =====================
-    // 渲染
-    // =====================
     const typeName = {single:'单选题', multi:'多选题', blank:'填空题', judge:'判断题'};
 
     function renderStats(){
       const ids = getFilteredIds();
       const total = ids.length;
       const current = total? (state.idx+1) : 0;
+
       const answeredIds = Object.keys(state.answered).map(Number);
       const correct = answeredIds.filter(id=>state.answered[id]?.correct).length;
       const acc = answeredIds.length ? (correct/answeredIds.length*100).toFixed(1)+'%' : '-';
@@ -848,7 +814,11 @@
         return;
       }
 
-      qTypeEl.textContent = typeName[q.type] + (state.mode==='wrongbook' ? '（错题本）' : '');
+      const inWrongBook = (state.mode === 'wrongbook');
+      const savedRaw = state.answered[q.id];
+      const saved = inWrongBook ? null : savedRaw; // 关键：错题本当成未做题
+
+      qTypeEl.textContent = typeName[q.type] + (inWrongBook ? '（错题本）' : '');
       qIdEl.textContent = '#' + q.id;
       qTitleEl.textContent = q.stem;
 
@@ -858,12 +828,12 @@
       m1.textContent = typeName[q.type];
       meta.appendChild(m1);
 
-      const saved = state.answered[q.id];
-      if(saved){
+      // 非错题本才显示“已答：正确/错误”
+      if(!inWrongBook && savedRaw){
         const m2 = document.createElement('span');
         m2.className='pill';
-        m2.textContent = saved.correct ? '已答：正确' : '已答：错误';
-        m2.style.borderColor = saved.correct ? 'rgba(87,211,123,.45)' : 'rgba(255,90,107,.45)';
+        m2.textContent = savedRaw.correct ? '已答：正确' : '已答：错误';
+        m2.style.borderColor = savedRaw.correct ? 'rgba(87,211,123,.45)' : 'rgba(255,90,107,.45)';
         meta.appendChild(m2);
       }
 
@@ -1003,9 +973,23 @@
         if(!correct) state.wrong[q.id] = true;
       }
 
+      // 关键：错题本模式下，正确 => 移出错题本；错误 => 保留
+      if(state.mode === 'wrongbook'){
+        if(state.answered[q.id].correct){
+          delete state.wrong[q.id];
+        }else{
+          state.wrong[q.id] = true;
+        }
+      }
+
       saveApp();
       render();
-      toast(state.answered[q.id].correct ? '正确。' : '错误，已加入错题本。');
+
+      if(state.mode === 'wrongbook'){
+        toast(state.answered[q.id].correct ? '正确，已移出错题本。' : '错误，仍保留在错题本。');
+      }else{
+        toast(state.answered[q.id].correct ? '正确。' : '错误，已加入错题本。');
+      }
     }
 
     function showAnswer(q){
@@ -1072,13 +1056,9 @@
       try{ render(); } finally { window.getFilteredIds = original; }
     }
 
-    // =====================
-    // 初始化
-    // =====================
     syncActive();
     renderBankSelect();
 
-    // 手机端：默认折叠统计，体验更沉浸
     if(!document.body.dataset.stats) document.body.dataset.stats = app.stats || 'collapsed';
     if(!document.body.dataset.reading) document.body.dataset.reading = app.reading || 'off';
     applyStats(document.body.dataset.stats);
@@ -1087,9 +1067,6 @@
 
     render();
 
-    // =====================
-    // 绑定事件
-    // =====================
     document.getElementById('bankSelect').addEventListener('change', (e)=>switchBank(e.target.value));
     document.getElementById('newBankBtn').addEventListener('click', createBankDialog);
 
@@ -1108,16 +1085,19 @@
     document.getElementById('search').addEventListener('input', ()=>{ state.idx=0; saveApp(); render(); });
     document.getElementById('typeFilter').addEventListener('change', ()=>{ state.idx=0; saveApp(); render(); });
 
-    // 底栏按钮
     document.getElementById('bbPrev').addEventListener('click', ()=>{ if(!document.getElementById('bbPrev').disabled) prev(); });
     document.getElementById('bbNext').addEventListener('click', ()=>{ if(!document.getElementById('bbNext').disabled) next(); });
 
+    // 底栏提交：错题本允许重复提交
     document.getElementById('bbSubmit').addEventListener('click', ()=>{
       const ids = getFilteredIds();
       const q = getQuestionById(ids[state.idx]);
       if(!q) return;
       const saved = state.answered[q.id];
-      if(saved){ toast('本题已提交，可查看答案或重做'); return; }
+      if(saved && state.mode !== 'wrongbook'){
+        toast('本题已提交，可查看答案或重做');
+        return;
+      }
       submitAnswer(q);
     });
 
@@ -1140,13 +1120,12 @@
 
       if(inInput){
         if(e.key==='Enter'){
-          // 填空题 Enter 直接提交
           const ids = getFilteredIds();
           const q = getQuestionById(ids[state.idx]);
           if(q){
             e.preventDefault();
             const saved = state.answered[q.id];
-            if(!saved) submitAnswer(q);
+            if(!saved || state.mode === 'wrongbook') submitAnswer(q);
           }
         }
         return;
@@ -1161,7 +1140,10 @@
         if(!q) return;
         e.preventDefault();
         const saved = state.answered[q.id];
-        if(saved){ toast('本题已提交'); return; }
+        if(saved && state.mode !== 'wrongbook'){
+          toast('本题已提交');
+          return;
+        }
         submitAnswer(q);
         return;
       }
